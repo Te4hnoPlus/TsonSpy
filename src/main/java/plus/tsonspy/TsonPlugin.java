@@ -1,5 +1,6 @@
 package plus.tsonspy;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineFactory;
 import plus.tson.*;
@@ -26,6 +27,15 @@ public class TsonPlugin extends JavaPlugin implements TsonObj {
             getLogger().warning("Error in config: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+
+    /**
+     * BStats metrics
+     * @param id Plugin id
+     */
+    protected void addMetric(int id){
+        Metrics metrics = new Metrics(this, id);
     }
 
 

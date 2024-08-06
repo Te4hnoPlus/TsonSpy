@@ -19,6 +19,7 @@ public final class TsonSpy extends TsonPlugin {
         super.onEnable();
         runIfExists("onEnable");
         getMap().ifContainsList("listeners", this::initListeners);
+        addMetric(0x5986);
     }
 
 
