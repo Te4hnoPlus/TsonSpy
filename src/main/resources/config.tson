@@ -1,0 +1,17 @@
+{
+    onEnable = func(inst){
+        println "Hello, Tson Spy :3"
+    },
+
+    onDisable = func(inst){
+        println inst.name + " Disabled"
+    },
+
+    onCommand = func(inst, sender, command, label, args){
+        println "Try call command " + String.join(" ", args)
+    },
+
+    listeners = [
+        {type = (org.bukkit.event.player.PlayerJoinEvent), func = func(event){println event}}
+    ]
+}
