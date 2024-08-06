@@ -146,6 +146,12 @@ public class TsonPlugin extends JavaPlugin implements TsonObj {
 
 
     @Override
+    public TsonPlugin clone() {
+        throw new UnsupportedOperationException();
+    }
+
+
+    @Override
     public void saveDefaultConfig() {
         //ignore default 'config.yaml', use only 'config.tson'
         saveResource("config.tson", false);
