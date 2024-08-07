@@ -1,9 +1,10 @@
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "8.1.1"
 }
 
 group = 'plus.tsonspy'
-version = '1.0'
+version = '1.0-pre2'
 
 repositories {
     mavenCentral()
@@ -19,11 +20,8 @@ repositories {
 
 dependencies {
     implementation "org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT"
-
-    //implementation 'org.codehaus.groovy:groovy:3.0.22'
     implementation 'org.bstats:bstats-bukkit:3.0.2'
     implementation 'org.codehaus.groovy:groovy-jsr223:3.0.22'
-    //implementation 'org.codehaus.groovy:groovy-all:3.0.22'
 }
 
 def targetJavaVersion = 8
@@ -44,21 +42,19 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
-
+shadowJar{
+    relocate 'org.bstats', 'plus.bstats'
+    dependencies {
+        include dependency('org.bstats:bstats-base:3.0.2')
+        include dependency('org.bstats:bstats-bukkit:3.0.2')
+        include dependency('org.codehaus.groovy:groovy-jsr223:3.0.22')
+        include dependency('org.codehaus.groovy:groovy:3.0.22')
+    }
+}
 
 jar{
-    exclude("META-INF/INDEX.LIST")
-    exclude("META-INF/groovy-release-info.properties")
-    from {
-        configurations.runtimeClasspath.collect {
-            if(it.name.contains("groovy")) {
-//                if(it.name.contains("jsr")){
-//
-//                }
-                zipTree(it)
-            }
-        }
-    }
+//    exclude("META-INF/INDEX.LIST")
+//    exclude("META-INF/groovy-release-info.properties")
 }
 
 processResources {
@@ -71,6 +67,7 @@ processResources {
 }
 
 sourceSets {
+    //install TsonConfigurations locally
     main {
         java {
             srcDir 'C:/Users/Te4hnoPlus/IdeaProjects/TsonConfigurations/core/src/main/java'

@@ -12,6 +12,7 @@ import org.bukkit.plugin.Plugin;
  */
 public class TsonEventExecutor implements EventExecutor {
     public static final TsonEventExecutor INSTANCE = new TsonEventExecutor();
+
     @Override
     public void execute(Listener listener, Event event) throws EventException {
         try {

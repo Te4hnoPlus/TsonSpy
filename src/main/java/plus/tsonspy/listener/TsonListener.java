@@ -12,7 +12,11 @@ import plus.tsonspy.TsonPlugin;
 public final class TsonListener<T extends Event> implements Listener {
     private final TsonFunc func;
 
-    TsonListener(TsonFunc func) {
+    public TsonListener(TsonFunc func) {
+        int count = func.countArgs();
+        if(count != -1 && count != 1){
+            throw new IllegalArgumentException("Listener func must have 1 argument");
+        }
         this.func = func;
     }
 

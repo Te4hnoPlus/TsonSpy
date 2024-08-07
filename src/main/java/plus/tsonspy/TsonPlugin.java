@@ -1,10 +1,16 @@
 package plus.tsonspy;
 
 import org.bstats.bukkit.Metrics;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineFactory;
 import plus.tson.*;
 import plus.tson.security.ClassManager;
+import plus.tsonspy.listener.TsonEventExecutor;
+import plus.tsonspy.listener.TsonListener;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 
@@ -13,13 +19,14 @@ import java.nio.charset.StandardCharsets;
  * Base class for all Tson plugins
  */
 public class TsonPlugin extends JavaPlugin implements TsonObj {
+    private Metrics metrics;
+    private static boolean engineInstalled = false;
     private TsonMap map;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         //use groovy script engine defaults
-        TsonFunc.COMPILER.setEngine(new GroovyScriptEngineFactory().getScriptEngine());
         try {
             loadConfig();
         } catch (Exception e){
@@ -27,6 +34,62 @@ public class TsonPlugin extends JavaPlugin implements TsonObj {
             getLogger().warning("Error in config: " + e.getMessage());
             e.printStackTrace();
         }
+        installEngine(map.getStrSafe("engine"));
+    }
+
+
+    /**
+     * Install engine if not installed yet
+     * @param name Engine name, if null use default
+     */
+    private static void installEngine(String name){
+        if(!engineInstalled) {
+            if(name != null){
+                ScriptEngine engine = new ScriptEngineManager().getEngineByName(name);
+                if(engine != null){
+                    TsonFunc.COMPILER.setEngine(engine);
+                    engineInstalled = true;
+                    return;
+                } else {
+                    System.err.println("Script engine [" + name + "] not found, use default");
+                }
+            }
+            TsonFunc.COMPILER.setEngine(new GroovyScriptEngineFactory().getScriptEngine());
+            engineInstalled = true;
+        }
+    }
+
+
+    /**
+     * Register TsonListener in Bukkit event bus
+     * @param plugin TsonPlugin instance
+     * @param type Event type
+     */
+    public static void registerEvent(
+            TsonPlugin plugin,
+            Class<? extends Event> type,
+            TsonListener<?> listener,
+            EventPriority priority
+    ){
+        if(priority == null)priority = EventPriority.NORMAL;
+
+        plugin.getServer().getPluginManager().registerEvent(
+                type,
+                listener,
+                priority,
+                TsonEventExecutor.INSTANCE, plugin
+        );
+    }
+
+
+    /**
+     * Safe calculate event priority
+     */
+    protected static EventPriority priorityOf(int i){
+        EventPriority[] values = EventPriority.values();
+        if(i >= values.length)i = values.length-1;
+        if(i < 0)i = 0;
+        return values[i];
     }
 
 
@@ -35,7 +98,12 @@ public class TsonPlugin extends JavaPlugin implements TsonObj {
      * @param id Plugin id
      */
     protected void addMetric(int id){
-        Metrics metrics = new Metrics(this, id);
+        try {
+            metrics = new Metrics(this, id);
+        } catch (Throwable e){
+            getLogger().warning("Metrics error: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 
@@ -59,9 +127,7 @@ public class TsonPlugin extends JavaPlugin implements TsonObj {
     private static void fixBadChars(byte[] src){
         for (int i = 0, s = src.length; i < s; i++){
             byte b = src[i];
-            if(b == '\r' || b == '\t'){
-                src[i] = ' ';
-            }
+            if(b == '\r' || b == '\t') src[i] = ' ';
         }
     }
 
@@ -84,6 +150,12 @@ public class TsonPlugin extends JavaPlugin implements TsonObj {
     @Override
     public TsonMap getMap() {
         return map;
+    }
+
+
+    @Override
+    public void onDisable() {
+        if(metrics != null) metrics.shutdown();
     }
 
 
@@ -145,6 +217,7 @@ public class TsonPlugin extends JavaPlugin implements TsonObj {
     public TsonMap getField() {
         return map;
     }
+
 
     /**
      * Map method emulation, see {@link TsonMap#type()}
