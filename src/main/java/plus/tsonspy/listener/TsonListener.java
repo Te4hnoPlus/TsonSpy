@@ -4,6 +4,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
 import plus.tson.TsonFunc;
 import plus.tsonspy.TsonPlugin;
+import java.util.function.Function;
 
 
 /**
@@ -18,6 +19,17 @@ public final class TsonListener<T extends Event> implements Listener {
             throw new IllegalArgumentException("Listener func must have 1 argument");
         }
         this.func = func;
+    }
+
+
+    /**
+     * Adapt Function to TsonListener
+     */
+    public static <C extends Event> TsonListener<C> wrap(Function<C,Boolean> func){
+        if(func instanceof TsonFunc){
+            return new TsonListener<>((TsonFunc) func);
+        }
+        return new TsonListener<>(args -> func.apply((C) args[0]));
     }
 
 

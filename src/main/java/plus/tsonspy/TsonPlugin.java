@@ -13,6 +13,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Function;
 
 
 /**
@@ -61,14 +62,32 @@ public class TsonPlugin extends JavaPlugin implements TsonObj {
 
 
     /**
+     * Register Function in Bukkit event bus
+     */
+    public static <T extends Event> void registerCustomListener(
+            TsonPlugin plugin,
+            Class<T> type,
+            Function<T,Boolean> listener,
+            EventPriority priority
+    ){
+        registerTsonListener(
+                plugin,
+                type,
+                TsonListener.wrap(listener),
+                priority
+        );
+    }
+
+
+    /**
      * Register TsonListener in Bukkit event bus
      * @param plugin TsonPlugin instance
      * @param type Event type
      */
-    public static void registerEvent(
+    public static <T extends Event> void registerTsonListener(
             TsonPlugin plugin,
-            Class<? extends Event> type,
-            TsonListener<?> listener,
+            Class<T> type,
+            TsonListener<T> listener,
             EventPriority priority
     ){
         if(priority == null)priority = EventPriority.NORMAL;

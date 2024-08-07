@@ -40,11 +40,11 @@ public final class TsonSpy extends TsonPlugin {
     /**
      * Load and register TsonListener, use TsonEventExecutor for acceleration
      */
-    private void initListener(TsonMap map){
-        Class<? extends Event> type = map.getCustom("type");
+    private <T extends Event> void initListener(TsonMap map){
+        Class<T> type = map.getCustom("type");
         Object raw = map.getCustom("func");
 
-        TsonListener<?> listener;
+        TsonListener<T> listener;
         if(raw instanceof TsonFunc.Frame){
             listener = TsonListener.compile(this, (TsonFunc.Frame) raw);
         } else if(raw instanceof TsonFunc){
@@ -81,7 +81,7 @@ public final class TsonSpy extends TsonPlugin {
             throw new IllegalArgumentException("Listener func must be TsonFunc");
         }
 
-        registerEvent(this, type, listener, priorityOf(calc(map, "priority", 2)));
+        registerTsonListener(this, type, listener, priorityOf(calc(map, "priority", 2)));
     }
 
 
